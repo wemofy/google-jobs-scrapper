@@ -3,12 +3,20 @@ from flask import Flask, request, jsonify
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options   
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 import urllib.parse
 import logging
 
 app = Flask(__name__)
+
+chrome_options = Options()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-software-rasterizer')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
 
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,7 +36,7 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
     # Initialize the Chrome WebDriver
     driver = None
     try:
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
         time.sleep(0.8)  # Adding delay for the website to load
 
@@ -50,7 +58,7 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
                     # time.sleep(0.1)
                     data.click()
                     # time.sleep(0.1)
-                    
+
                     p_e = driver.find_element(By.CSS_SELECTOR, '.EDblX.kjqWgb')
                     eles = driver.find_elements(By.CSS_SELECTOR, '.EDblX.kjqWgb')
                     for ele in eles:
