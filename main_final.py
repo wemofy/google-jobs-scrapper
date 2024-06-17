@@ -9,12 +9,17 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 import urllib.parse
+from pyvirtualdisplay import Display
+from PIL import Image
 import logging
 
 app = Flask(__name__)
 
 chrome_options = Options()
 # firefox_options = Options()
+chrome_options.binary_location = "/usr/bin/google-chrome"  # Path to your Chrome binary
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
 
 def setup_logging():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,6 +29,16 @@ def setup_logging():
 def scrape_jobs(position, city, num_listings, filter_criteria):
     setup_logging()
     start_time = time.time()
+
+    display = None
+    try:
+        display = Display(visible=0, size=(1920, 1080))
+        display.start()
+        print("Virtual display started successfully.")
+    except Exception as e:
+        logging.error(f"Error starting virtual display: {e}")
+        print(f"Error starting virtual display: {e}")
+
 
 
     # Construct the search query URL
@@ -38,7 +53,13 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
         # driver = webdriver.Firefox(options=firefox_options)
 
         driver.get(url)
-        time.sleep(0.8)  # Adding delay for the website to load
+        time.sleep(0.8)
+        
+             # Capture screenshot of the virtual display
+        screenshot_path = '/tmp/screenshot.png'
+        driver.save_screenshot(screenshot_path)
+        print(f"Screenshot saved at {screenshot_path}")
+  # Adding delay for the website to load
 
         final_data = []
         urls = set()
@@ -134,6 +155,9 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
     finally:
         if driver:
             driver.quit()
+        if display:
+            display.stop()
+            print("Virtual display stopped.")
 
     # Save the cleaned data to a JSON file
     json_filename = 'job-output.json'
@@ -142,6 +166,8 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
     
     logging.info(f"Cleaned job data has been saved to '{json_filename}'")
     logging.info(f"Total number of cleaned job listings found: {len(final_data)}")
+       
+    #return send_file(screenshot_path, mimetype='image/png', as_attachment=True, download_name='screenshot.png')
 
     return jsonify(final_data)
 
