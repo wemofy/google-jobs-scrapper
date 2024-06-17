@@ -51,7 +51,7 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
         # driver = webdriver.Firefox(options=firefox_options)
 
         driver.get(url)
-        time.sleep(0.8)  # Adding delay for the website to load
+        time.sleep(1)  # Adding delay for the website to load
 
         # Capture screenshot of the virtual display
         screenshot_path = '/tmp/screenshot.png'
@@ -69,7 +69,7 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
             for data in datas:
                 if len(final_data) >= num_listings:
                     break
-
+#			time.sleep(0.4)	
                 try:
                     driver.execute_script("arguments[0].scrollIntoView();", data)
                     data.click()
@@ -108,11 +108,14 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
         while lenj < num_listings:
             try:
                 logging.info("Scrolling down to load more job listings...")
+		#logging.info("Scroll Completed",len(datas))
                 datas = driver.find_elements(By.CLASS_NAME, "oNwCmf")
                 scroll_origin = ScrollOrigin.from_element(datas[len(datas) - 1])
                 action.scroll_from_origin(scroll_origin, 0, 1500).perform()
                 lenj = len(datas)
+		    #print(lenj)
                 time.sleep(0.1)
+          	#logging.info("Scroll completed. Number of job cards:"len(datas))
             except Exception as e:
                 logging.error(f"Exception occurred while scrolling: {e}")
                 break
@@ -141,8 +144,8 @@ def scrape_jobs(position, city, num_listings, filter_criteria):
     logging.info(f"Total number of cleaned job listings found: {len(final_data)}")
 
     # Return the screenshot as a downloadable file
-    return send_file(screenshot_path, mimetype='image/png', as_attachment=True, download_name='screenshot.png')
-
+    #return send_file(screenshot_path, mimetype='image/png', as_attachment=True, download_name='screenshot.png')
+    return jsonify(final_data)
 # Example usage
 if __name__ == '__main__':
-    app.run(debug=True, port='7889')
+    app.run(debug=True,host='0.0.0.0', port='7889')
